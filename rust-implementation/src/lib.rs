@@ -6,7 +6,7 @@ pub mod file_io;
 pub mod undo;
 
 pub use core::*;
-pub use buffer::Buffer;
+pub use buffer::{Buffer, MultiBuffer};
 pub use display::{TerminalDisplay, StatusLine};
 pub use editor_ops::{EditorOps, ClipboardManager};
 pub use file_io::{FileSystem, SafeFileManager};
