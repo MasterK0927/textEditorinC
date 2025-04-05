@@ -1,6 +1,9 @@
 use crate::core::{EditorError, Result, TextBuffer};
 use std::collections::VecDeque;
 
+pub mod multi_buffer;
+pub use multi_buffer::MultiBuffer;
+
 #[derive(Debug, Clone)]
 pub struct Buffer {
     content: String,
