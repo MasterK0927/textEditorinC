@@ -114,5 +114,35 @@ impl EditorState {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct BufferInfo {
+    pub filename: String,
+    pub is_modified: bool,
+    pub cursor: Position,
+    pub scroll_offset: usize,
+}
+
+impl BufferInfo {
+    pub fn new(filename: String) -> Self {
+        Self {
+            filename,
+            is_modified: false,
+            cursor: Position::origin(),
+            scroll_offset: 0,
+        }
+    }
+}
+
+pub trait BufferManager {
+    fn open_file(&mut self, filename: &str) -> Result<usize>;
+    fn new_buffer(&mut self) -> usize;
+    fn switch_to_buffer(&mut self, index: usize) -> Result<()>;
+    fn close_buffer(&mut self, index: usize) -> Result<()>;
+    fn get_current_buffer_index(&self) -> usize;
+    fn get_buffer_count(&self) -> usize;
+    fn get_buffer_info(&self, index: usize) -> Option<&BufferInfo>;
+    fn list_buffers(&self) -> Vec<(usize, &BufferInfo)>;
+}
+
 pub const TAB_SIZE: usize = 4;
 pub const MAX_HISTORY: usize = 100;
