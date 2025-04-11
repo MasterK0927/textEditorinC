@@ -56,14 +56,29 @@ This project demonstrates the evolution of software engineering practices by imp
 cd c-implementation
 sudo apt install libncurses-dev  # Install dependencies
 make
+
+# Basic usage
 ./your-editor [filename]
+
+# Command-line options
+./your-editor --help              # Show help
+./your-editor -r file.txt         # Open in read-only mode
+./your-editor file1.txt file2.txt # Open multiple files (opens first)
 ```
 
 ### Rust Version
 ```bash
 cd rust-implementation
 sudo apt install libncurses-dev  # Install dependencies
+
+# Basic usage
 cargo run [filename]
+
+# Command-line options
+cargo run -- --help                    # Show help
+cargo run -- --readonly file.txt       # Open in read-only mode
+cargo run -- --tab-size 8 file.txt     # Set tab size
+cargo run -- file1.txt file2.txt       # Open multiple files
 ```
 
 ## Features Comparison
@@ -74,6 +89,10 @@ cargo run [filename]
 | Syntax Highlighting | ✅ Basic (C keywords) | ✅ Enhanced (Rust keywords) |
 | Undo/Redo | ✅ Stack-based | ✅ Type-safe with action history |
 | File I/O | ✅ Basic | ✅ With validation and backups |
+| Vim Commands | ✅ :e, :w, :q, :wq | ✅ Full vim-like command set |
+| Multi-buffer | ❌ Single file | ✅ Multiple files with switching |
+| Read-only Mode | ✅ Command-line flag | ✅ Command-line flag |
+| Command-line Args | ✅ Basic file opening | ✅ Advanced with clap |
 | Memory Safety | ⚠️ Manual management | ✅ Guaranteed by compiler |
 | Error Handling | ⚠️ Return codes | ✅ Comprehensive Result types |
 | Testing | ❌ Manual testing | ✅ Unit tests included |
@@ -166,7 +185,7 @@ cargo run test.txt  # Run the editor
 
 ## Usage
 
-Both implementations share the same interface:
+Both implementations now support vim-like commands:
 
 ### Edit Mode (Default)
 - **Arrow keys**: Move cursor
@@ -176,6 +195,7 @@ Both implementations share the same interface:
 - **Enter**: New line
 - **Escape**: Switch to command mode
 - **Home/End**: Line navigation
+- **:**: Start vim command input
 
 ### Command Mode
 - **i**: Switch to edit mode
@@ -186,6 +206,19 @@ Both implementations share the same interface:
 - **x**: Cut selection
 - **p**: Paste
 - **h**: Show help
+- **:**: Start vim command input
+
+### Vim-like Commands
+- **:e <file>**: Edit/open file
+- **:o <file>**: Open file (same as :e)
+- **:w**: Write/save current file
+- **:w <file>**: Save as different filename
+- **:wq**: Write and quit
+- **:q**: Quit
+- **:new**: Create new buffer (Rust only)
+- **:ls**: List all buffers (Rust only)
+- **:b <num>**: Switch to buffer number (Rust only)
+- **:bd**: Delete current buffer (Rust only)
 
 ## Getting Started
 
