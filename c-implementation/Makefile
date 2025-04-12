@@ -2,11 +2,11 @@ CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c99
 LDFLAGS = -lncurses
 
-SRC_DIR = src
+SRC_DIR = .
 OBJ_DIR = obj
 
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+SRCS = $(wildcard *.c)
+OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o)
 
 TARGET = your-editor
 
@@ -17,7 +17,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR):
