@@ -51,34 +51,46 @@ This project demonstrates the evolution of software engineering practices by imp
 
 ## Quick Start
 
-### C Version
+### Automatic Installation (Recommended)
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd textEditorinC
+
+# Run the installation script (installs dependencies and builds both versions)
+./install.sh
+
+# Use the editors
+teditor filename.txt      # Rust version (primary)
+teditor-c filename.txt    # C version
+```
+
+### 🔧 Manual Build
+```bash
+# For interactive build process
+./build.sh
+
+# Or build manually:
+# C Version
 cd c-implementation
 sudo apt install libncurses-dev  # Install dependencies
 make
-
-# Basic usage
 ./your-editor [filename]
 
-# Command-line options
-./your-editor --help              # Show help
-./your-editor -r file.txt         # Open in read-only mode
-./your-editor file1.txt file2.txt # Open multiple files (opens first)
-```
-
-### Rust Version
-```bash
+# Rust Version
 cd rust-implementation
 sudo apt install libncurses-dev  # Install dependencies
+cargo build --release
+./target/release/text-editor [filename]
+```
 
-# Basic usage
-cargo run [filename]
-
-# Command-line options
-cargo run -- --help                    # Show help
-cargo run -- --readonly file.txt       # Open in read-only mode
-cargo run -- --tab-size 8 file.txt     # Set tab size
-cargo run -- file1.txt file2.txt       # Open multiple files
+### Pre-built Releases
+Download pre-built binaries from the releases section:
+```bash
+# Extract and install
+tar -xzf text-editor-1.0.0-linux-x86_64.tar.gz
+cd text-editor-binary
+sudo ./install.sh
 ```
 
 ## Features Comparison
@@ -168,6 +180,11 @@ brew install ncurses
 
 ### Building and Testing
 
+#### Quick Build
+```bash
+./build.sh          # Interactive build script
+```
+
 #### C Implementation
 ```bash
 cd c-implementation
@@ -178,9 +195,14 @@ make clean && make
 #### Rust Implementation
 ```bash
 cd rust-implementation
-cargo build
+cargo build --release
 cargo test          # Run unit tests
-cargo run test.txt  # Run the editor
+./target/release/text-editor test.txt
+```
+
+#### Creating Release Packages
+```bash
+./create-release.sh  # Creates distributable packages
 ```
 
 ## Usage
@@ -225,6 +247,31 @@ Both implementations now support vim-like commands:
 1. **For C Development**: Start with `c-implementation/README.md`
 2. **For Rust Development**: See `rust-implementation/README.md`
 3. **For Comparison Study**: Build and test both versions side by side
+
+## Distribution & Deployment
+
+### Available Scripts
+- **`./install.sh`** - Complete installation with dependencies
+- **`./build.sh`** - Interactive build process
+- **`./create-release.sh`** - Create distributable packages
+- **`./verify_implementations.sh`** - Verify project structure
+
+### System Integration
+After installation, the editors are available as:
+- **`teditor`** - Rust implementation (primary command)
+- **`teditor-c`** - C implementation
+
+### Cross-Platform Support
+- **Linux**: Full support (tested on Ubuntu/Debian)
+- **macOS**: Supported with Homebrew
+- **Windows**: Available via WSL or native build (see releases)
+
+### Package Formats
+The `create-release.sh` script generates:
+- Source distribution (`text-editor-1.0.0-source.tar.gz`)
+- Binary distribution (`text-editor-1.0.0-linux-x86_64.tar.gz`)
+- Windows build instructions
+- SHA256 checksums for verification
 
 ## Contributing
 
