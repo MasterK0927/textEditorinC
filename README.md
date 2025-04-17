@@ -84,6 +84,26 @@ cargo build --release
 ./target/release/text-editor [filename]
 ```
 
+### Manual Installation
+After building, install system-wide manually:
+```bash
+# Build first
+./build.sh
+
+# Install C version
+sudo cp c-implementation/your-editor /usr/local/bin/teditor-c
+
+# Install Rust version
+sudo cp rust-implementation/target/release/text-editor /usr/local/bin/teditor
+
+# Make executable (if needed)
+sudo chmod +x /usr/local/bin/teditor*
+
+# Now use anywhere
+teditor filename.txt
+teditor-c filename.txt
+```
+
 ### Pre-built Releases
 Download pre-built binaries from the releases section:
 ```bash
