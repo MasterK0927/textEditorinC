@@ -31,6 +31,7 @@ void deleteFromBuffer(Buffer *buffer, int pos) {
     if (pos < buffer->length) {
         memmove(buffer->content + pos, buffer->content + pos + 1, buffer->length - pos);
         buffer->length--;
+        buffer->content[buffer->length] = '\0';
     }
 }
 
