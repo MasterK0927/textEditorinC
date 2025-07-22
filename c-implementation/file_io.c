@@ -6,7 +6,9 @@ void openFile(const char *filename, Buffer *buffer) {
     if (file == NULL) {
         return;
     }
-    char line[COLS + 1];
+    // Use a fixed-size buffer here because ncurses' COLS is undefined before initscr().
+    // A reasonably large line buffer avoids dependency on terminal initialization.
+    char line[4096];
     while (fgets(line, sizeof(line), file) != NULL) {
         appendToBuffer(buffer, line);
     }
