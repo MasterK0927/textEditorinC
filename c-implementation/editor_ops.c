@@ -5,13 +5,17 @@ char clipboard[MAX_BUFFER] = {0};
 
 void insertChar(EditorState *state, char ch) {
     int pos = state->cursor.y * COLS + state->cursor.x;
+    if (pos < 0) pos = 0;
+    if (pos > state->buffer.length) pos = state->buffer.length;
     insertIntoBuffer(&state->buffer, pos, ch);
     moveCursor(state, 1, 0);
 }
 
 void deleteChar(EditorState *state) {
     int pos = state->cursor.y * COLS + state->cursor.x;
-    if (pos > 0) {
+    if (pos < 0) pos = 0;
+    if (pos > state->buffer.length) pos = state->buffer.length;
+    if (pos > 0 && state->buffer.length > 0) {
         moveCursor(state, -1, 0);
         deleteFromBuffer(&state->buffer, pos - 1);
     }
@@ -41,14 +45,23 @@ void scrollEditor(EditorState *state) {
 }
 
 int getScreenX(EditorState *state) {
-    return state->cursor.x;
+    int x = state->cursor.x;
+    if (x < 0) x = 0;
+    if (x >= COLS) x = COLS - 1;
+    return x;
 }
 
 int getScreenY(EditorState *state) {
-    return state->cursor.y - state->scroll_offset;
+    int sy = state->cursor.y - state->scroll_offset;
+    if (sy < 0) sy = 0;
+    if (sy >= EDITOR_HEIGHT) sy = EDITOR_HEIGHT - 1;
+    return sy;
 }
 
 void copySelection(EditorState *state, int start, int end) {
+    if (start > end) { int tmp = start; start = end; end = tmp; }
+    if (start < 0) start = 0;
+    if (end > state->buffer.length) end = state->buffer.length;
     int length = end - start;
     if (length > 0 && length < MAX_BUFFER) {
         strncpy(clipboard, state->buffer.content + start, length);
@@ -57,6 +70,9 @@ void copySelection(EditorState *state, int start, int end) {
 }
 
 void cutSelection(EditorState *state, int start, int end) {
+    if (start > end) { int tmp = start; start = end; end = tmp; }
+    if (start < 0) start = 0;
+    if (end > state->buffer.length) end = state->buffer.length;
     copySelection(state, start, end);
     int length = end - start;
     if (length > 0) {
@@ -70,11 +86,18 @@ void pasteAtCursor(EditorState *state) {
     int clipboardLength = strlen(clipboard);
     if (clipboardLength > 0) {
         int pos = state->cursor.y * COLS + state->cursor.x;
-        if (state->buffer.length + clipboardLength < MAX_BUFFER) {
-            memmove(state->buffer.content + pos + clipboardLength, state->buffer.content + pos, state->buffer.length - pos);
-            memcpy(state->buffer.content + pos, clipboard, clipboardLength);
-            state->buffer.length += clipboardLength;
-            state->buffer.content[state->buffer.length] = '\0';
+        if (pos < 0) pos = 0;
+        if (pos > state->buffer.length) pos = state->buffer.length;
+        // Ensure capacity
+        if (state->buffer.length + clipboardLength + 1 >= state->buffer.capacity) {
+            while (state->buffer.length + clipboardLength + 1 >= state->buffer.capacity) {
+                state->buffer.capacity *= 2;
+            }
+            state->buffer.content = realloc(state->buffer.content, state->buffer.capacity);
         }
+        memmove(state->buffer.content + pos + clipboardLength, state->buffer.content + pos, state->buffer.length - pos + 1);
+        memcpy(state->buffer.content + pos, clipboard, clipboardLength);
+        state->buffer.length += clipboardLength;
+        state->buffer.content[state->buffer.length] = '\0';
     }
 }
