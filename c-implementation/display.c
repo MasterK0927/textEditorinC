@@ -10,16 +10,17 @@ void syntaxHighlight(WINDOW *editorWin, const char *line, int length, int cursor
             waddch(editorWin, line[i]);
             wattroff(editorWin, COLOR_PAIR(4));
             i++;
-        } else if (isalpha(line[i])) {
+        } else if (isalpha((unsigned char)line[i])) {
             // Check for keywords
             int j = 0;
             while (keywords[j] != NULL) {
-                if (strncmp(&line[i], keywords[j], strlen(keywords[j])) == 0 &&
-                   (i + strlen(keywords[j]) >= length || !isalnum(line[i + strlen(keywords[j])]))) {
+                size_t kwlen = strlen(keywords[j]);
+                if (strncmp(&line[i], keywords[j], kwlen) == 0 &&
+                   ((size_t)i + kwlen >= (size_t)length || !isalnum((unsigned char)line[i + kwlen]))) {
                     wattron(editorWin, COLOR_PAIR(1)); // Set color for keyword
-                    waddnstr(editorWin, keywords[j], strlen(keywords[j]));
+                    waddnstr(editorWin, keywords[j], (int)kwlen);
                     wattroff(editorWin, COLOR_PAIR(1));
-                    i += strlen(keywords[j]);
+                    i += (int)kwlen;
                     break;
                 }
                 j++;
@@ -27,10 +28,10 @@ void syntaxHighlight(WINDOW *editorWin, const char *line, int length, int cursor
             if (keywords[j] == NULL) {
                 waddch(editorWin, line[i++]);
             }
-        } else if (isdigit(line[i])) {
+        } else if (isdigit((unsigned char)line[i])) {
             // Highlight numbers
             wattron(editorWin, COLOR_PAIR(2));
-            while (i < length && isdigit(line[i])) {
+            while (i < length && isdigit((unsigned char)line[i])) {
                 waddch(editorWin, line[i++]);
             }
             wattroff(editorWin, COLOR_PAIR(2));
@@ -108,6 +109,7 @@ void displayHelpForCommand(WINDOW *editorWin, const char *command) {
 }
 
 void showHelp(WINDOW *editorWin, EditorState *state) {
+    (void)state; // state currently unused
     werase(editorWin);
     mvwprintw(editorWin, 0, 0, "Help System");
     mvwprintw(editorWin, 2, 0, "Enter the name of the functionality you want to know about:");
