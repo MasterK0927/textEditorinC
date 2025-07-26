@@ -130,6 +130,8 @@ int main(int argc, char *argv[]) {
     // Create windows
     editorWin = newwin(EDITOR_HEIGHT, COLS, 0, 0);
     statusWin = newwin(STATUS_HEIGHT, COLS, EDITOR_HEIGHT, 0);
+    keypad(editorWin, TRUE);
+    keypad(statusWin, TRUE);
 
     saveUndoState(&state.buffer);  // Initial state saved for undo
 
@@ -223,12 +225,18 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case KEY_HOME:
-                    while (state.cursor.x > 0 && state.buffer.content[state.cursor.y * COLS + state.cursor.x - 1] != '\n') {
+                    while (state.cursor.x > 0) {
+                        int pos = state.cursor.y * COLS + (state.cursor.x - 1);
+                        if (pos < 0 || pos >= state.buffer.length) break;
+                        if (state.buffer.content[pos] == '\n') break;
                         moveCursor(&state, -1, 0);
                     }
                     break;
                 case KEY_END:
-                    while (state.cursor.x < COLS - 1 && state.buffer.content[state.cursor.y * COLS + state.cursor.x] != '\n' && state.cursor.y * COLS + state.cursor.x < state.buffer.length) {
+                    while (state.cursor.x < COLS - 1) {
+                        int pos = state.cursor.y * COLS + state.cursor.x;
+                        if (pos < 0 || pos >= state.buffer.length) break;
+                        if (state.buffer.content[pos] == '\n') break;
                         moveCursor(&state, 1, 0);
                     }
                     break;
@@ -244,32 +252,29 @@ int main(int argc, char *argv[]) {
                 switch (ch) {
                     case '\n':
                     case KEY_ENTER:
-                        // Execute command
                         if (strlen(commandBuffer) > 1) {
                             if (strcmp(commandBuffer, ":q") == 0 || strcmp(commandBuffer, ":quit") == 0) {
                                 endwin();
                                 freeBuffer(&state.buffer);
                                 return 0;
-                            }
-                            else if (strcmp(commandBuffer, ":wq") == 0) {
+                            } else if (strcmp(commandBuffer, ":wq") == 0) {
                                 if (!readonly) {
                                     saveFile(state.filename, &state.buffer);
                                 }
                                 endwin();
                                 freeBuffer(&state.buffer);
                                 return 0;
-                            }
-                            else {
-                                executeCommand(&state, statusWin, commandBuffer + 1); // Skip ':'
+                            } else {
+                                executeCommand(&state, statusWin, commandBuffer + 1);
                             }
                         }
                         commandMode = 0;
-                        state.mode = 0; // Return to edit mode
+                        state.mode = 0;
                         memset(commandBuffer, 0, sizeof(commandBuffer));
                         break;
                     case 27: // ESC
                         commandMode = 0;
-                        state.mode = 0; // Return to edit mode
+                        state.mode = 0;
                         memset(commandBuffer, 0, sizeof(commandBuffer));
                         break;
                     case KEY_BACKSPACE:
@@ -309,61 +314,60 @@ int main(int argc, char *argv[]) {
                         endwin();
                         freeBuffer(&state.buffer);
                         return 0;
-                case 's':
-                    if (!readonly) {
-                        saveFile(state.filename, &state.buffer);
-                        mvwprintw(statusWin, 0, COLS - 20, "File saved");
-                    } else {
-                        mvwprintw(statusWin, 0, 0, "Cannot save in read-only mode");
-                    }
-                    wrefresh(statusWin);
-                    break;
-                case 'h':
-                    showHelp(editorWin, &state);
-                    // Redraw the editor window after returning from help
-                    redrawwin(editorWin);
-                    wrefresh(editorWin);
-                    break;
-                case 'u':
-                    undo(&state.buffer);
-                    break;
-                case 'r':
-                    redo(&state.buffer);
-                    break;
-                case 'i':
-                    state.mode = 0; // Switch back to edit mode
-                    break;
-                case 'v':
-                    if (selectionStart == -1) {
-                        selectionStart = state.cursor.y * COLS + state.cursor.x;
-                    } else {
-                        int selectionEnd = state.cursor.y * COLS + state.cursor.x;
-                        copySelection(&state, selectionStart, selectionEnd);
-                        selectionStart = -1;
-                    }
-                    break;
-                case 'x':
-                    if (selectionStart != -1) {
-                        int selectionEnd = state.cursor.y * COLS + state.cursor.x;
-                        cutSelection(&state, selectionStart, selectionEnd);
-                        selectionStart = -1;
-                    }
-                    break;
-                case 'p':
-                    pasteAtCursor(&state);
-                    break;
-                case ':':
-                    commandMode = 1; // Enter command input mode
-                    strcpy(commandBuffer, ":");
-                    mvwprintw(statusWin, 0, 0, "%s", commandBuffer);
-                    wrefresh(statusWin);
-                    break;
+                    case 's':
+                        if (!readonly) {
+                            saveFile(state.filename, &state.buffer);
+                            mvwprintw(statusWin, 0, COLS - 20, "File saved");
+                        } else {
+                            mvwprintw(statusWin, 0, 0, "Cannot save in read-only mode");
+                        }
+                        wrefresh(statusWin);
+                        break;
+                    case 'h':
+                        showHelp(editorWin, &state);
+                        // Redraw the editor window after returning from help
+                        redrawwin(editorWin);
+                        wrefresh(editorWin);
+                        break;
+                    case 'u':
+                        undo(&state.buffer);
+                        break;
+                    case 'r':
+                        redo(&state.buffer);
+                        break;
+                    case 'i':
+                        state.mode = 0;
+                        break;
+                    case 'v':
+                        if (selectionStart == -1) {
+                            selectionStart = state.cursor.y * COLS + state.cursor.x;
+                        } else {
+                            int selectionEnd = state.cursor.y * COLS + state.cursor.x;
+                            copySelection(&state, selectionStart, selectionEnd);
+                            selectionStart = -1;
+                        }
+                        break;
+                    case 'x':
+                        if (selectionStart != -1) {
+                            int selectionEnd = state.cursor.y * COLS + state.cursor.x;
+                            cutSelection(&state, selectionStart, selectionEnd);
+                            selectionStart = -1;
+                        }
+                        break;
+                    case 'p':
+                        pasteAtCursor(&state);
+                        break;
+                    case ':':
+                        commandMode = 1;
+                        strcpy(commandBuffer, ":");
+                        mvwprintw(statusWin, 0, 0, "%s", commandBuffer);
+                        wrefresh(statusWin);
+                        break;
+                }
             }
         }
-
         scrollEditor(&state);
     }
-
     endwin();
     freeBuffer(&state.buffer);
     return 0;
