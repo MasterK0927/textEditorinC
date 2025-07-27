@@ -76,9 +76,9 @@ impl TerminalDisplay {
             // Check if this is the cursor position
             if let Some(cursor_x) = cursor_pos {
                 if byte_idx == cursor_x {
-                    window.attron(COLOR_PAIR(COLOR_CURSOR));
+                    window.attron(COLOR_PAIR(COLOR_CURSOR as u32));
                     window.mvaddch(line_y, x, ch);
-                    window.attroff(COLOR_PAIR(COLOR_CURSOR));
+                    window.attroff(COLOR_PAIR(COLOR_CURSOR as u32));
                     x += 1;
                     continue;
                 }
@@ -101,9 +101,9 @@ impl TerminalDisplay {
 
                 let word = &text[word_start..word_end];
                 if self.keywords.contains(&word.to_string()) {
-                    window.attron(COLOR_PAIR(COLOR_KEYWORD));
+                    window.attron(COLOR_PAIR(COLOR_KEYWORD as u32));
                     window.mvaddstr(line_y, x, word);
-                    window.attroff(COLOR_PAIR(COLOR_KEYWORD));
+                    window.attroff(COLOR_PAIR(COLOR_KEYWORD as u32));
                     x += word.chars().count() as i32;
                     highlighted = true;
                 }
@@ -111,15 +111,15 @@ impl TerminalDisplay {
 
             // Check for numbers
             if !highlighted && ch.is_ascii_digit() {
-                window.attron(COLOR_PAIR(COLOR_NUMBER));
+                window.attron(COLOR_PAIR(COLOR_NUMBER as u32));
                 window.mvaddch(line_y, x, ch);
-                window.attroff(COLOR_PAIR(COLOR_NUMBER));
+                window.attroff(COLOR_PAIR(COLOR_NUMBER as u32));
                 highlighted = true;
             }
 
             // Check for strings
             if !highlighted && ch == '"' {
-                window.attron(COLOR_PAIR(COLOR_STRING));
+                window.attron(COLOR_PAIR(COLOR_STRING as u32));
                 window.mvaddch(line_y, x, ch);
 
                 // Continue until closing quote
@@ -130,7 +130,7 @@ impl TerminalDisplay {
                         break;
                     }
                 }
-                window.attroff(COLOR_PAIR(COLOR_STRING));
+                window.attroff(COLOR_PAIR(COLOR_STRING as u32));
                 highlighted = true;
             }
 
