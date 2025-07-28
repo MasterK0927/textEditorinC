@@ -2,7 +2,8 @@ use crate::core::{BufferInfo, BufferManager, EditorError, FileManager, Position,
 use crate::buffer::Buffer;
 use std::collections::HashMap;
 
-pub struct MultiBuffer<F: FileManager> {
+#[derive(Clone)]
+pub struct MultiBuffer<F: FileManager + Clone> {
     buffers: Vec<Buffer>,
     buffer_info: Vec<BufferInfo>,
     current_buffer: usize,
@@ -10,7 +11,7 @@ pub struct MultiBuffer<F: FileManager> {
     next_buffer_id: usize,
 }
 
-impl<F: FileManager> MultiBuffer<F> {
+impl<F: FileManager + Clone> MultiBuffer<F> {
     pub fn new(file_manager: F) -> Self {
         let mut multi_buffer = Self {
             buffers: Vec::new(),
@@ -62,12 +63,13 @@ impl<F: FileManager> MultiBuffer<F> {
     }
 
     pub fn save_current_buffer(&mut self) -> Result<()> {
-        if let (Some(buffer), Some(info)) = (
-            self.get_current_buffer(),
-            self.get_current_buffer_info_mut(),
-        ) {
-            self.file_manager.save(&info.filename, buffer.content())?;
-            info.is_modified = false;
+        let idx = self.current_buffer;
+        if idx < self.buffers.len() && idx < self.buffer_info.len() {
+            // Clone data to avoid overlapping borrows of self
+            let content = self.buffers[idx].content().to_string();
+            let filename = self.buffer_info[idx].filename.clone();
+            self.file_manager.save(&filename, &content)?;
+            self.buffer_info[idx].is_modified = false;
             Ok(())
         } else {
             Err(EditorError::InvalidOperation("No current buffer".to_string()))
@@ -121,7 +123,7 @@ impl<F: FileManager> MultiBuffer<F> {
     }
 }
 
-impl<F: FileManager> BufferManager for MultiBuffer<F> {
+impl<F: FileManager + Clone> BufferManager for MultiBuffer<F> {
     fn open_file(&mut self, filename: &str) -> Result<usize> {
         // Check if file is already open
         if let Some(index) = self.find_buffer_by_name(filename) {
@@ -218,7 +220,7 @@ impl<F: FileManager> BufferManager for MultiBuffer<F> {
 }
 
 // Delegate TextBuffer operations to the current buffer
-impl<F: FileManager> TextBuffer for MultiBuffer<F> {
+impl<F: FileManager + Clone> TextBuffer for MultiBuffer<F> {
     fn content(&self) -> &str {
         self.get_current_buffer()
             .map(|b| b.content())
