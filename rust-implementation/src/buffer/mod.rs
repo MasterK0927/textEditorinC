@@ -97,11 +97,10 @@ impl TextBuffer for Buffer {
 
         if ch == '\n' {
             let (line_idx, col) = self.position_to_line_col(pos)?;
-            let current_line = &self.lines[line_idx];
-            let (left, right) = current_line.split_at(col);
-
-            self.lines[line_idx] = left.to_string();
-            self.lines.insert(line_idx + 1, right.to_string());
+            // Avoid holding an immutable borrow while mutating self.lines
+            let right = self.lines[line_idx][col..].to_string();
+            self.lines[line_idx].truncate(col);
+            self.lines.insert(line_idx + 1, right);
         } else {
             let (line_idx, col) = self.position_to_line_col(pos)?;
             self.lines[line_idx].insert(col, ch);
