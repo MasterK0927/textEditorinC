@@ -2,6 +2,7 @@ use crate::core::{EditorError, FileManager, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+#[derive(Clone)]
 pub struct FileSystem {
     current_directory: PathBuf,
 }
@@ -164,6 +165,7 @@ pub struct FileMetadata {
     pub created: Option<std::time::SystemTime>,
 }
 
+#[derive(Clone)]
 pub struct SafeFileManager {
     file_system: FileSystem,
     auto_backup: bool,
