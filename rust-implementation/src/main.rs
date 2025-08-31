@@ -47,7 +47,6 @@ impl VimLikeEditor {
             MultiBuffer::from_files(file_manager, files)?
         };
 
-        let editor_ops = EditorOps::new(multi_buffer, (80, 24)); // Default size, will be updated
         let mut display = TerminalDisplay::new();
         let status_line = StatusLine::new();
         let undo_system = UndoRedoStack::new();
@@ -58,8 +57,8 @@ impl VimLikeEditor {
         let screen_size = display.get_size();
 
         Ok(Self {
-            multi_buffer: editor_ops.buffer().clone(),
-            editor_ops: EditorOps::new(multi_buffer, screen_size),
+            multi_buffer: multi_buffer.clone(),
+            editor_ops: EditorOps::new(multi_buffer.clone(), screen_size),
             display,
             status_line,
             undo_system,
@@ -317,7 +316,8 @@ impl VimLikeEditor {
     }
 
     fn execute_command(&mut self) -> Result<Option<bool>> {
-        let command = self.command_buffer.trim_start_matches(':');
+        let command_owned = self.command_buffer.clone();
+        let command = command_owned.trim_start_matches(':');
         let parts: Vec<&str> = command.split_whitespace().collect();
 
         if parts.is_empty() {
@@ -390,13 +390,15 @@ impl VimLikeEditor {
 
     fn handle_quit(&mut self) -> Result<bool> {
         // Check if any buffers are modified
-        let modified_buffers: Vec<_> = self.multi_buffer.list_buffers()
+        let modified_indices: Vec<usize> = self.multi_buffer
+            .list_buffers()
             .into_iter()
             .filter(|(_, info)| info.is_modified)
+            .map(|(idx, _)| idx)
             .collect();
 
-        if !modified_buffers.is_empty() {
-            let msg = format!("{} file(s) modified. Save before quit? (y/n/a)", modified_buffers.len());
+        if !modified_indices.is_empty() {
+            let msg = format!("{} file(s) modified. Save before quit? (y/n/a)", modified_indices.len());
             self.display.render_status(&msg)?;
             self.display.refresh()?;
 
@@ -409,7 +411,7 @@ impl VimLikeEditor {
                 }
                 'a' | 'A' => {
                     // Save all modified buffers
-                    for (index, _) in modified_buffers {
+                    for index in modified_indices {
                         self.multi_buffer.switch_to_buffer(index)?;
                         self.multi_buffer.save_current_buffer()?;
                     }
